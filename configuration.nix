@@ -4,11 +4,9 @@
     ./hardware-configuration.nix
   ];
 
-  # Установка имени хоста
   networking.hostName = "nixos";
   networking.networkmanager.enable = true;
 
-  # Настройки пользователей
   users.groups.autumnus = {};
   users.users.autumnus = {
     isNormalUser = true;
@@ -17,7 +15,6 @@
     initialPassword = "sergius";
   };
 
-  # Настройка sudo
   security.sudo.extraRules = [
     {
       groups = [ "autumnus" ];
@@ -25,7 +22,6 @@
     }
   ];
 
-  # Установка нужных пакетов
   environment.systemPackages = with pkgs; [
     git
     vim
@@ -98,7 +94,6 @@
     obs-studio
   ];
 
-  # Настройки systemd-resolved с DNS over TLS
   services.resolved = {
     enable = true;
     dnsOverTls = "opportunistic";
@@ -108,23 +103,19 @@
     '';
   };
 
-  # Настройка Docker
   virtualisation.docker.enable = true;
   virtualisation.docker.rootless = {
     enable = true;
     setSocketVariable = true;
   };
 
-  # Настройка Hyperland
   programs.hyprland.enable = true;
   environment.sessionVariables = {
     WLR_NO_HARDWARE_CURSORS = "1";
   };
 
-  # Waybar стилизация и поведение
   programs.waybar.enable = true;
 
-  # Файрвол и защита сети
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 80 443 53 2375 2376 ];
@@ -133,30 +124,23 @@
   };
   networking.nftables.enable = true;
   
-  # Логирование попыток доступа через firewall
   networking.firewall.logDeny = true;
 
-  # Автомонтирование флешек с запросом пароля
   services.udisks2.enable = true;
 
-  # GNOME Keyring для SSH-ключей
   services.gnome.gnome-keyring.enable = true;
   
-  # Включение logid для Logitech MX Master 3
   services.logid.enable = true;
 
-  # Настройки загрузчика
   boot.loader.systemd-boot.consoleMode = "quiet";
 
-  # Разрешаем использование несвободных пакетов
   nixpkgs.config.allowUnfree = true;
 
-  # Настройка горячих углов в Hyprland
   programs.hyprland.settings.binds = [
-    "movecursor 0 0 exec wlogout"  # Левый верхний угол - меню выхода
-    "movecursor 100 0 exec loginctl lock-session"  # Правый верхний угол - блокировка экрана
-    "movecursor 0 100 exec wofi --show drun"  # Левый нижний угол - запуск Wofi (лаунчбар)
-    "movecursor 100 100 exec hyprctl dispatch togglespecialworkspace magic"  # Правый нижний угол - показать рабочий стол
+    "movecursor 0 0 exec wlogout" 
+    "movecursor 100 0 exec loginctl lock-session"
+    "movecursor 0 100 exec wofi --show drun"
+    "movecursor 100 100 exec hyprctl dispatch togglespecialworkspace magic"  
   ];
 
   system.stateVersion = "23.11";
