@@ -116,15 +116,22 @@
   # Wayland and Hyprland configuration
   programs.hyprland = {
     enable = true;
-    xwayland.enable = true;
+    xwayland = {
+      enable = true;
+    };
   };
 
   # Required for screen sharing
   services.dbus.enable = true;
-  xdg.portal = {
-    enable = true;
-    wlr.enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  xdg = {
+    portal = {
+      enable = true;
+      extraPortals = [
+        pkgs.xdg-desktop-portal-gtk
+        pkgs.xdg-desktop-portal-hyprland
+      ];
+      config.common.default = "*";
+    };
   };
 
   environment.sessionVariables = {
@@ -145,7 +152,7 @@
   # Firewall configuration
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 80 443 53 2375 2376 22 ];  # Added 22 for SSH
+    allowedTCPPorts = [ 80 443 53 2375 2376 22 ];
     allowedUDPPorts = [ 53 ];
     denyPorts = [ 1900 ];
     logDeny = true;
@@ -189,13 +196,16 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # Hyprland bindings
-  programs.hyprland.settings.binds = [
-    "movecursor 0 0 exec wlogout" 
-    "movecursor 100 0 exec loginctl lock-session"
-    "movecursor 0 100 exec wofi --show drun"
-    "movecursor 100 100 exec hyprctl dispatch togglespecialworkspace magic"  
-  ];
+  # Hyprland default configuration
+  programs.hyprland.settings = {
+    "$mod" = "SUPER";
+    bind = [
+      "$mod, Q, exec, wlogout"
+      "$mod, L, exec, loginctl lock-session"
+      "$mod, D, exec, wofi --show drun"
+      "$mod, S, togglespecialworkspace, magic"
+    ];
+  };
 
   # Enable fonts
   fonts.packages = with pkgs; [
