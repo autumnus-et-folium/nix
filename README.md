@@ -5,4 +5,4 @@
 ```bash
 bash <(curl -sL https://raw.githubusercontent.com/autumnus-et-folium/nix/main/partitioning.sh)
 
-nixos-install --flake /mnt/root/nix#default
+nixos-install
