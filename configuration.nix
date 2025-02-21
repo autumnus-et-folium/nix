@@ -4,17 +4,22 @@
     ./hardware-configuration.nix
   ];
 
+  # Basic system configuration
   networking.hostName = "nixos";
   networking.networkmanager.enable = true;
+  time.timeZone = "Europe/Moscow";
+  i18n.defaultLocale = "en_US.UTF-8";
 
+  # User configuration
   users.groups.autumnus = {};
   users.users.autumnus = {
     isNormalUser = true;
     group = "autumnus";
-    extraGroups = [ "wheel" "networkmanager" "docker" "vboxusers" ];
+    extraGroups = [ "wheel" "networkmanager" "docker" "vboxusers" "video" "audio" "input" ];
     initialPassword = "sergius";
   };
 
+  # Sudo configuration
   security.sudo.extraRules = [
     {
       groups = [ "autumnus" ];
@@ -22,78 +27,69 @@
     }
   ];
 
+  # System packages
   environment.systemPackages = with pkgs; [
-    git
-    vim
-    wget
-    curl
-    kitty
-    zsh
-    oh-my-zsh
-    docker
-    docker-compose
-    vagrant
-    vagrant-libvirt
+    # Basic utilities
+    git vim wget curl
+    
+    # Terminal and shell
+    kitty zsh oh-my-zsh
+    
+    # Development tools
+    docker docker-compose
+    vagrant vagrant-libvirt
     terraform
-    networkmanager-dmenu
-    nemo
-    mpv
-    btop
-    glances
-    dig
-    ss
-    mtr
-    journalctl
-    rsync
-    logrotate
-    grep
-    pgrep
-    ps
-    iproute2
-    openssh
+    ansible ansible-lint
+    packer pre-commit
+    yamllint tfsec
+    kubectl helm
+    vscode pycharm-community
+    python3
+    
+    # System monitoring and networking
+    btop glances mtr
+    nmap tcpdump wireshark-cli
+    htop vnstat lsof jq
+    dig ss iproute2
+    rsync logrotate
+    
+    # Wayland and Hyprland
+    wayland
+    xwayland
     hyprland
-    xdg-desktop-portal-hyprland
     waybar
     wofi
-    v2ray
-    qv2ray
-    wlogout
-    terminus_font
-    ansible
-    slack
-    firefox
-    google-chrome
-    vscode
-    yt-dlp
-    youtube-dlg
-    logiops
-    pycharm-community
-    kubectl
-    helm
-    tfsec
-    packer
-    pre-commit
-    ansible-lint
-    yamllint
-    nmap
-    tcpdump
-    wireshark-cli
-    htop
-    vnstat
-    lsof
-    jq
-    cat
-    ls
-    nftables
+    xdg-desktop-portal
+    xdg-desktop-portal-hyprland
     xdg-desktop-portal-gtk
-    libsForQt5.xwaylandvideobridge
-    python3
-    udisk
-    ffmpeg
-    telegram-desktop
+    xdg-utils
+    swww
+    dunst
+    grim
+    slurp
+    wl-clipboard
+    wlogout
+    qt5.qtwayland
+    qt6.qtwayland
+    polkit-kde-agent
+    
+    # Applications
+    firefox google-chrome
+    slack telegram-desktop
+    nemo mpv
     obs-studio
+    yt-dlp youtube-dlg
+    
+    # Other utilities
+    v2ray qv2ray
+    terminus_font
+    logiops
+    ffmpeg
+    openssh
+    libsForQt5.xwaylandvideobridge
   ];
 
+  # DNS configuration
   services.resolved = {
     enable = true;
     dnsOverTls = "opportunistic";
@@ -103,39 +99,97 @@
     '';
   };
 
-  virtualisation.docker.enable = true;
-  virtualisation.docker.rootless = {
+  # Docker configuration
+  virtualisation.docker = {
     enable = true;
-    setSocketVariable = true;
+    daemon.settings = {
+      features = {
+        buildkit = true;
+      };
+    };
+    rootless = {
+      enable = true;
+      setSocketVariable = true;
+    };
   };
 
-  programs.hyprland.enable = true;
+  # Wayland and Hyprland configuration
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+  };
+
+  # Required for screen sharing
+  services.dbus.enable = true;
+  xdg.portal = {
+    enable = true;
+    wlr.enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  };
+
   environment.sessionVariables = {
     WLR_NO_HARDWARE_CURSORS = "1";
+    QT_QPA_PLATFORM = "wayland;xcb";
+    SDL_VIDEODRIVER = "wayland";
+    QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+    GDK_BACKEND = "wayland";
+    MOZ_ENABLE_WAYLAND = "1";
+    XDG_SESSION_TYPE = "wayland";
+    XDG_CURRENT_DESKTOP = "Hyprland";
+    XDG_SESSION_DESKTOP = "Hyprland";
   };
 
+  # Waybar configuration
   programs.waybar.enable = true;
 
+  # Firewall configuration
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 80 443 53 2375 2376 ];
+    allowedTCPPorts = [ 80 443 53 2375 2376 22 ];  # Added 22 for SSH
     allowedUDPPorts = [ 53 ];
-    denyPorts = [ 22 1900 ];
+    denyPorts = [ 1900 ];
+    logDeny = true;
   };
+
   networking.nftables.enable = true;
-  
-  networking.firewall.logDeny = true;
 
-  services.udisks2.enable = true;
+  # System services
+  services = {
+    udisks2.enable = true;
+    gnome.gnome-keyring.enable = true;
+    logid.enable = true;
+    pipewire = {
+      enable = true;
+      alsa.enable = true;
+      pulse.enable = true;
+      jack.enable = true;
+    };
+    xserver = {
+      enable = true;
+      displayManager.gdm.enable = true;
+      displayManager.gdm.wayland = true;
+    };
+  };
 
-  services.gnome.gnome-keyring.enable = true;
-  
-  services.logid.enable = true;
+  # Security and authentication
+  security = {
+    polkit.enable = true;
+    pam.services.swaylock = {};
+  };
 
-  boot.loader.systemd-boot.consoleMode = "quiet";
+  # Boot configuration
+  boot.loader = {
+    systemd-boot = {
+      enable = true;
+      consoleMode = "quiet";
+    };
+    efi.canTouchEfiVariables = true;
+  };
 
+  # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
+  # Hyprland bindings
   programs.hyprland.settings.binds = [
     "movecursor 0 0 exec wlogout" 
     "movecursor 100 0 exec loginctl lock-session"
@@ -143,5 +197,16 @@
     "movecursor 100 100 exec hyprctl dispatch togglespecialworkspace magic"  
   ];
 
+  # Enable fonts
+  fonts.packages = with pkgs; [
+    noto-fonts
+    noto-fonts-cjk
+    noto-fonts-emoji
+    liberation_ttf
+    fira-code
+    fira-code-symbols
+  ];
+
+  # System version
   system.stateVersion = "23.11";
 }
