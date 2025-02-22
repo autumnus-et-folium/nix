@@ -16,7 +16,7 @@
     isNormalUser = true;
     group = "autumnus";
     extraGroups = [ "wheel" "networkmanager" "docker" "vboxusers" "video" "audio" "input" ];
-    initialPassword = "sergius";
+    initialPassword = "";
   };
 
   # Sudo configuration
