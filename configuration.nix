@@ -38,7 +38,6 @@
     experimental = false;
     metrics-addr = "0.0.0.0:9323";
   };
-  virtualisation.virtualbox.host.enable = true;
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -108,8 +107,8 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.autumnus = {
     isNormalUser = true;
-    description = "sergius";
-    extraGroups = [ "networkmanager" "wheel" "docker" "libvirtd" "video" "render" "vboxusers" ];
+    description = "passwd";
+    extraGroups = [ "networkmanager" "wheel" "docker" "libvirtd" ];
     packages = with pkgs; [
     #  thunderbird
     ];
